@@ -1,12 +1,9 @@
-# lux
-Pipeline local-kaggle for lux AI Kaggle competition research
+# Lux AI Kaggle competition solution using reinforcement learning
 
 
 [MY AGENT Notebook on Kaggle](https://www.kaggle.com/aithammadiabdellatif/keras-lux-ai-reinforcement-learning)
 
 
-
-![](images/deepQlearning.png)
-![](images/directions.png)
-![](images/equation.png)
+![](lux.png)
+<!-- ![](images/deepQlearning.png) -->
 
