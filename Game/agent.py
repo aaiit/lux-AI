@@ -1,6 +1,8 @@
 # %%writefile agent.py
 import os
 import pickle
+from random import randint
+
 
 import numpy as np
 import builtins as __builtin__
@@ -126,7 +128,8 @@ def agent(observation, configuration, DEBUG=False):
     actions, game_state, missions,M = game_logic(game_state, missions)
 
     if not os.environ.get('GFOOTBALL_DATA_DIR', ''):  # on Kaggle compete, do not save items
-        str_step = str(observation["step"]).zfill(3)
+        # str_step = str(observation["step"]).zfill(3)
+        str_step = str(randint(1,1e10))#str(observation["step"]).zfill(3)
         with open('snapshots/observation-{}.pkl'.format(str_step), 'wb') as handle:
             pickle.dump(observation, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open('snapshots/game_state-{}.pkl'.format(str_step), 'wb') as handle:
