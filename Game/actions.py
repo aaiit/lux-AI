@@ -15,12 +15,18 @@ from lux.game_constants import GAME_CONSTANTS
 
 from heuristics import *
 
+import numpy as np
 DIRECTIONS = Constants.DIRECTIONS
 
 
-def make_city_actions(game_state: Game, DEBUG=False) -> List[str]:
+def make_city_actions(game_state: Game, DEBUG=False):
     if DEBUG: print = __builtin__.print
     else: print = lambda *args: None
+        
+    # two options
+    w,h = game_state.map.width, game_state.map.height
+    M = np.zeros((h,w,2)) # research & buid_worker
+    
 
     player = game_state.player
 
@@ -32,19 +38,23 @@ def make_city_actions(game_state: Game, DEBUG=False) -> List[str]:
     def do_research(city_tile: CityTile):
         action = city_tile.research()
         actions.append(action)
+        
+        M[city_tile.pos.y,city_tile.pos.x,0] = 1
 
     def build_workers(city_tile: CityTile):
         nonlocal units_cnt
         action = city_tile.build_worker()
         actions.append(action)
         units_cnt += 1
+        
+        M[city_tile.pos.y,city_tile.pos.x,1] = 1
 
     city_tiles: List[CityTile] = []
     for city in player.cities.values():
         for city_tile in city.citytiles:
             city_tiles.append(city_tile)
     if not city_tiles:
-        return []
+        return [],M
 
     for city_tile in city_tiles:
         if not city_tile.can_act():
@@ -74,7 +84,7 @@ def make_city_actions(game_state: Game, DEBUG=False) -> List[str]:
 
         # otherwise don't do anything
 
-    return actions
+    return actions,M
 
 
 class Mission:
@@ -117,6 +127,7 @@ def make_unit_missions(game_state: Game, missions: Missions, DEBUG=False) -> Mis
     convolved_player_unit_matrix = game_state.convolve(np.array(game_state.player_units_matrix))
     missions.cleanup(player)  # remove dead units
 
+    
     for unit in player.units:
         # mission is planned regardless whether the unit can act
 
@@ -172,10 +183,15 @@ def make_unit_missions(game_state: Game, missions: Missions, DEBUG=False) -> Mis
     return missions
 
 
-def make_unit_actions(game_state: Game, missions: Missions, DEBUG=False) -> Tuple[Missions, List[str]]:
+def make_unit_actions(game_state: Game, missions: Missions, DEBUG=False):
     if DEBUG: print = __builtin__.print
     else: print = lambda *args: None
-
+    
+    # 6 options
+    w,h = game_state.map.width, game_state.map.height
+    M = np.zeros((h,w,6)) # c s n w e build_city
+    
+    
     player, opponent = game_state.player, game_state.opponent
     actions = []
 
@@ -205,6 +221,9 @@ def make_unit_actions(game_state: Game, missions: Missions, DEBUG=False) -> Tupl
             action = mission.target_action
             if action:
                 actions.append(action)
+                
+                M[unit.pos.y,unit.pos.x,5] = 1
+                
             del missions[unit.id]
             continue
 
@@ -215,6 +234,9 @@ def make_unit_actions(game_state: Game, missions: Missions, DEBUG=False) -> Tupl
             action = unit.move(direction)
             print("make move", unit.id, unit.pos, direction)
             actions.append(action)
+            
+
+            M[unit.pos.y,unit.pos.x,"csnwe".index(direction)] = 1
             continue
 
         # [TODO] make it possible for units to swap positions
@@ -225,7 +247,7 @@ def make_unit_actions(game_state: Game, missions: Missions, DEBUG=False) -> Tupl
         if mission.delays >= 1:
             del missions[unit_id]
 
-    return missions, actions
+    return missions, actions,M
 
 
 def calculate_path_distance(game_state: Game, start_pos: Position, target_pos: Position, ignored_set: Set):

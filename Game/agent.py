@@ -22,18 +22,19 @@ def game_logic(game_state: Game, missions: Missions, DEBUG=False):
     if DEBUG: print = __builtin__.print
     else: print = lambda *args: None
 
-    actions_by_cities = make_city_actions(game_state, DEBUG=DEBUG)
+    actions_by_cities,M1 = make_city_actions(game_state, DEBUG=DEBUG)
     missions = make_unit_missions(game_state, missions, DEBUG=DEBUG)
     mission_annotations = print_and_annotate_missions(game_state, missions)
-    missions, actions_by_units = make_unit_actions(game_state, missions, DEBUG=DEBUG)
+    missions, actions_by_units, M2 = make_unit_actions(game_state, missions, DEBUG=DEBUG)
     movement_annotations = annotate_movements(game_state, actions_by_units)
 
+    M = np.dstack([M2,M1])
     print("actions_by_cities", actions_by_cities)
     print("actions_by_units", actions_by_units)
     print("mission_annotations", mission_annotations)
     print("movement_annotations", movement_annotations)
     actions = actions_by_cities + actions_by_units + mission_annotations + movement_annotations
-    return actions, game_state, missions
+    return actions, game_state, missions,M
 
 
 def print_game_state(game_state: Game, DEBUG=False):
@@ -120,16 +121,19 @@ def agent(observation, configuration, DEBUG=False):
         # actually rebuilt and recomputed from scratch
         game_state._update(observation["updates"])
 
+    copy_game_state = game_state
+
+    actions, game_state, missions,M = game_logic(game_state, missions)
+
     if not os.environ.get('GFOOTBALL_DATA_DIR', ''):  # on Kaggle compete, do not save items
         str_step = str(observation["step"]).zfill(3)
         with open('snapshots/observation-{}.pkl'.format(str_step), 'wb') as handle:
             pickle.dump(observation, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open('snapshots/game_state-{}.pkl'.format(str_step), 'wb') as handle:
-            pickle.dump(game_state, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(copy_game_state, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open('snapshots/missions-{}.pkl'.format(str_step), 'wb') as handle:
             pickle.dump(missions, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    actions, game_state, missions = game_logic(game_state, missions)
-#     for i in 
-    print(actions)
+        with open('snapshots/actions_as_Matrix-{}.pkl'.format(str_step), 'wb') as handle:
+            pickle.dump(M, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
     return actions
