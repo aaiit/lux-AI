@@ -1,3 +1,4 @@
+# %%writefile lux/game_map.py
 import math, random
 from typing import List, Set, Tuple
 

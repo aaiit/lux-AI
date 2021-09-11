@@ -1,3 +1,4 @@
+# %%writefile actions.py
 # functions executing the actions
 
 import os, random, collections

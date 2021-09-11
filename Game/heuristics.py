@@ -1,3 +1,4 @@
+# %%writefile heuristics.py
 # contains designed heuristics
 # which could be fine tuned
 

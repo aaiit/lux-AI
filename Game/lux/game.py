@@ -1,3 +1,4 @@
+# %%writefile lux/game.py
 from typing import Dict, List, Tuple, Set
 
 import numpy as np
