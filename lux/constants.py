@@ -1,3 +1,4 @@
+# %%writefile lux/constants.py
 class Constants:
     class INPUT_CONSTANTS:
         RESEARCH_POINTS = "rp"

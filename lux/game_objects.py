@@ -1,11 +1,14 @@
-from typing import Dict
+# %%writefile lux/game_objects.py
+from lux import annotate
+import random
+from typing import Dict, List
 
 from .constants import Constants
-from .game_map import Position
+from .game_position import Position
 from .game_constants import GAME_CONSTANTS
 
 UNIT_TYPES = Constants.UNIT_TYPES
-
+DIRECTIONS = Constants.DIRECTIONS
 
 class Player:
     def __init__(self, team):
@@ -14,10 +17,19 @@ class Player:
         self.units: list[Unit] = []
         self.cities: Dict[str, City] = {}
         self.city_tile_count = 0
+
+        self.units_by_id: Dict[str, Unit] = {}
+
     def researched_coal(self) -> bool:
         return self.research_points >= GAME_CONSTANTS["PARAMETERS"]["RESEARCH_REQUIREMENTS"]["COAL"]
+
     def researched_uranium(self) -> bool:
         return self.research_points >= GAME_CONSTANTS["PARAMETERS"]["RESEARCH_REQUIREMENTS"]["URANIUM"]
+
+    def make_index_units_by_id(self):
+        self.units_by_id: Dict[str, Unit] = {}
+        for unit in self.units:
+            self.units_by_id[unit.id] = unit
 
 
 class City:
@@ -27,10 +39,13 @@ class City:
         self.fuel = fuel
         self.citytiles: list[CityTile] = []
         self.light_upkeep = light_upkeep
+        self.fuel_needed_for_remaining_nights = -1  # [TODO]
+
     def _add_city_tile(self, x, y, cooldown):
         ct = CityTile(self.team, self.cityid, x, y, cooldown)
         self.citytiles.append(ct)
         return ct
+
     def get_light_upkeep(self):
         return self.light_upkeep
 
@@ -41,21 +56,25 @@ class CityTile:
         self.team = teamid
         self.pos = Position(x, y)
         self.cooldown = cooldown
+
     def can_act(self) -> bool:
         """
         Whether or not this unit can research or build
         """
         return self.cooldown < 1
+
     def research(self) -> str:
         """
         returns command to ask this tile to research this turn
         """
         return "r {} {}".format(self.pos.x, self.pos.y)
+
     def build_worker(self) -> str:
         """
         returns command to ask this tile to build a worker this turn
         """
         return "bw {} {}".format(self.pos.x, self.pos.y)
+
     def build_cart(self) -> str:
         """
         returns command to ask this tile to build a cart this turn
@@ -84,6 +103,8 @@ class Unit:
         self.cargo.wood = wood
         self.cargo.coal = coal
         self.cargo.uranium = uranium
+
+
     def is_worker(self) -> bool:
         return self.type == UNIT_TYPES.WORKER
 
@@ -99,7 +120,7 @@ class Unit:
             return GAME_CONSTANTS["PARAMETERS"]["RESOURCE_CAPACITY"]["WORKER"] - spaceused
         else:
             return GAME_CONSTANTS["PARAMETERS"]["RESOURCE_CAPACITY"]["CART"] - spaceused
-    
+
     def can_build(self, game_map) -> bool:
         """
         whether or not the unit can build where it is right now
@@ -117,9 +138,16 @@ class Unit:
 
     def move(self, dir) -> str:
         """
-        return the command to move unit in the given direction
+        return the command to move unit in the given direction, and annotate
         """
         return "m {} {}".format(self.id, dir)
+
+    def random_move(self) -> str:
+        return "m {} {}".format(self.id, random.choice([
+            DIRECTIONS.NORTH,
+            DIRECTIONS.EAST,
+            DIRECTIONS.SOUTH,
+            DIRECTIONS.WEST]))
 
     def transfer(self, dest_id, resourceType, amount) -> str:
         """

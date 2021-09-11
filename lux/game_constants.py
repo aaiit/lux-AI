@@ -1,3 +1,4 @@
+# %%writefile lux/game_constants.py
 import json
 from os import path
 dir_path = path.dirname(__file__)
