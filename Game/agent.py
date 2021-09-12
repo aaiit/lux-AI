@@ -105,7 +105,9 @@ def annotate_movements(game_state: Game, actions_by_units: List[str]):
         annotations.append(annotation)
 
     return annotations
-
+N = 15
+import random
+import string
 
 def agent(observation, configuration, DEBUG=False):
     if DEBUG: print = __builtin__.print
@@ -129,7 +131,7 @@ def agent(observation, configuration, DEBUG=False):
 
     if not os.environ.get('GFOOTBALL_DATA_DIR', ''):  # on Kaggle compete, do not save items
         # str_step = str(observation["step"]).zfill(3)
-        str_step = str(randint(1,1e10))#str(observation["step"]).zfill(3)
+        str_step = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
         with open('snapshots/observation-{}.pkl'.format(str_step), 'wb') as handle:
             pickle.dump(observation, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open('snapshots/game_state-{}.pkl'.format(str_step), 'wb') as handle:
