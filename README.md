@@ -20,7 +20,7 @@ In notebook 1 we tackle the following steps:
 - [ ] Radom fliping augmentation
 - [x] Define custom loss 
 - [ ] Evaluations metrics.
-- [x] Define the model.
+- [x] Define the model. ([Model visualisation](https://viscom.net2vis.uni-ulm.de/PmSEAEjLx3yjq0qpBFwtadHHtdOJ36qpycXGp0y3LfXOBtjqiF))
 - [x] Train the model.
 
 In notebook 2
